@@ -1,0 +1,30 @@
+package com.lortey.humme
+
+import android.content.Context
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
+
+public val APIFileName = "APIKeys.json"
+private val jsonFormat = Json { prettyPrint = true } // jsonFormat
+
+@Serializable
+public data class API(
+    var spotifyClientID:String?,
+    var spotifyClientSecret:String?,
+    var geniusClientID:String?,
+    var geniusClientSecret:String?,
+)
+
+public fun saveAPI(apiKeys:API, context: Context){
+    val file = File(context.filesDir, APIFileName)
+    val jsonString = jsonFormat.encodeToString(apiKeys)
+    file.writeText(jsonString)
+}
+
+public fun loadAPI(context: Context):API{
+    val file = File(context.filesDir, APIFileName)
+    val content = file.readText()
+    return jsonFormat.decodeFromString<API>(content)
+}
