@@ -21,11 +21,15 @@ import androidx.navigation.compose.rememberNavController
 import com.lortey.cardflare.ui.theme.HumMeTheme
 import com.lortey.humme.ui.theme.MainMenuRender
 
+import com.lortey.humme.ui.theme.PlaylistScreen
+import com.lortey.humme.ui.theme.apikeys
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
+        apikeys = loadAPI(applicationContext)
+        InitializeSp(applicationContext, apikeys!!)
         enableEdgeToEdge()
         setContent {
             HumMeTheme {
@@ -38,11 +42,18 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = "main_menu"
+                        startDestination = "playlists"
                     ) {
                         //home screen
                         composable("main_menu") {
                             MainMenuRender(
+                                navController = navController,
+                                context = LocalContext.current
+                            )
+                        }
+                        //playlist manager screen
+                        composable("playlists") {
+                            PlaylistScreen(
                                 navController = navController,
                                 context = LocalContext.current
                             )

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.chaquo.python")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -47,6 +48,8 @@ android {
             version =("3.10")
             pip {
                 install("spotipy")
+                install("dataclasses")
+                install("dataclasses_json")
             }
         }
 
