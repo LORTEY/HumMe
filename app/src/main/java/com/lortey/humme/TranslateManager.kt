@@ -85,7 +85,7 @@ fun getPossibleTranslations(context: Context):List<Translations>{
 }
 
 
-// lists all files in FlashcardDirectory
+/*
 fun listFilesInFilesDir(context: Context, folderName: String = "FlashcardDirectory"): Array<String> {
     try {
         val FlashcardDirectory = File(context.getExternalFilesDir(null), folderName) // Use getExternalFilesDir() here
@@ -101,7 +101,7 @@ fun listFilesInFilesDir(context: Context, folderName: String = "FlashcardDirecto
         Log.e("FilesDir", "Error reading files directory: ${e.message}")
     }
     return arrayOf()
-}
+}*/
 
 //location of Translations
 enum class Location{

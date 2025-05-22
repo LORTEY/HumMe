@@ -11,17 +11,7 @@ private var moduleSpotify: PyObject? = null
 private var moduleGenius: PyObject? = null
 private val jsonFormat = Json { prettyPrint = true }
 
-@Serializable
-data class Track(
-    val name:String,
-    val artist:List<String>
-)
 
-@Serializable
-data class Playlist(
-    val name:String,
-    val tracks:List<Track>
-)
 
 private fun getPython(context: Context): Python {
     if (!Python.isStarted()) {
