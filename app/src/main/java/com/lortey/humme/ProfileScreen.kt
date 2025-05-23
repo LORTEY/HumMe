@@ -2,10 +2,12 @@ package com.lortey.humme
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,9 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -68,7 +72,7 @@ fun ProfileScreen(context: Context, navController: NavController){
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 10.dp)){
-                    UniversalTextEntry(profile.name, profile.playlists.map{it.name}.joinToString { ", " },
+                    UniversalTextEntry(profile.name, profile.playlists.map{it.name}.joinToString (", "),
                         {clickedProfile->
                             editedProfile = clickedProfile as Profile
                             navController.navigate("edit_profile")
@@ -76,14 +80,30 @@ fun ProfileScreen(context: Context, navController: NavController){
                         profile)
                     Spacer(modifier = Modifier.weight(1f).padding(horizontal = 20.dp))
                     Switch(
-                        checked = profile.enabled.value,
+                        checked = profile.enabled,
                         onCheckedChange = { newValue ->
-                            profile.enabled = mutableStateOf(newValue)
+                            profile.enabled = newValue
                             saveProfile(profile,context)
                         }
                     )
                 }
-
+            }
+            item{
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .align(Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = { editedProfile = Profile(generateRandomBase48(),"", true, mutableListOf()); navController.navigate("edit_profile")}){
+                        Text(
+                            text = "Add Profile",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         }
     }
@@ -91,18 +111,24 @@ fun ProfileScreen(context: Context, navController: NavController){
 
 @Composable
 fun EditProfile(context: Context, navController: NavController){
+    var name by remember { mutableStateOf(editedProfile!!.name) }
     LaunchedEffect(Unit) {
         if(editedProfile == null){
-            editedProfile = Profile("", mutableStateOf(true), mutableListOf())
+            editedProfile = Profile(generateRandomBase48(),"", true, mutableListOf())
         }
     }
 
+    var showPopUp by remember { mutableStateOf(false) }
+
+    var playlistLink by remember { mutableStateOf("") }
+
     Column(modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
-        .padding(WindowInsets.systemBars.asPaddingValues())){
+        .padding(WindowInsets.systemBars.asPaddingValues())) {
         OutlinedTextField(
-            value = editedProfile!!.name,
-            onValueChange = { editedProfile!!.name = it },
+            value = name,
+            onValueChange = { editedProfile!!.name = it;
+                            name = it},
             label = {
                 Text(
                     "Profile Name",
@@ -127,24 +153,35 @@ fun EditProfile(context: Context, navController: NavController){
                 .fillMaxWidth()
         )
         LazyColumn {
-            items(editedProfile!!.playlists){playlist->
-                Row(verticalAlignment = Alignment.CenterVertically,
+            items(editedProfile!!.playlists) { playlist ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 10.dp)){
-                    UniversalTextEntry(playlist.name, playlist.tracks.map{it.name}.joinToString { ", " },
-                        {clickedPlaylist->
+                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                ) {
+                    UniversalTextEntry(
+                        playlist.name,
+                        playlist.tracks.map { it.name }.joinToString (", "),
+                        { clickedPlaylist ->
                             editedPlaylist = clickedPlaylist as Playlist
                             navController.navigate("edit_playlist")
                         },
-                        playlist)
+                        playlist
+                    )
                     Spacer(modifier = Modifier.weight(1f).padding(horizontal = 20.dp))
-                    IconButton(onClick = { editedProfile = editedProfile!!.copy(playlists = editedProfile!!.playlists.filterNot { it == playlist }.toMutableList())},
+                    IconButton(
+                        onClick = {
+                            editedProfile =
+                                editedProfile!!.copy(playlists = editedProfile!!.playlists.filterNot { it == playlist }
+                                    .toMutableList())
+                        },
                         modifier = Modifier.background(
-                        shape = RoundedCornerShape(128.dp),
-                        color = MaterialTheme.colorScheme.inverseOnSurface
-                    ) .size(32.dp)){
+                            shape = RoundedCornerShape(128.dp),
+                            color = MaterialTheme.colorScheme.inverseOnSurface
+                        ).size(32.dp)
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.delete),
                             contentDescription = "remove",
@@ -156,7 +193,7 @@ fun EditProfile(context: Context, navController: NavController){
                 }
 
             }
-            item{
+            item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -164,9 +201,110 @@ fun EditProfile(context: Context, navController: NavController){
                         .align(Alignment.CenterHorizontally),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Button(onClick = { editedPlaylist = null; navController.navigate("edit_playlist")}){
+                    Button(onClick = {
+                        editedPlaylist = Playlist(generateRandomBase48(),null, "", mutableListOf()); navController.navigate("edit_playlist")
+                    }) {
                         Text(
                             text = "Add Empty Playlist",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .align(Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = {
+                        showPopUp = true
+                    }) {
+                        Text(
+                            text = "Add Playlist From Spotify",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .align(Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(onClick = {
+                saveProfile(editedProfile!!, context)
+                navController.popBackStack()
+            }) {
+                Text(
+                    text = "Save",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+    if(showPopUp) {
+        Box(modifier = Modifier.fillMaxWidth().background(color=Color.Black.copy(alpha = 0.5f))){        }
+        Popup(
+            onDismissRequest = { showPopUp = false },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true
+            ),
+            alignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(WindowInsets.systemBars.asPaddingValues())
+            ) {
+                OutlinedTextField(
+                    value = playlistLink,
+                    onValueChange = { playlistLink = it },
+                    label = {
+                        Text(
+                            "Playlist Or Artist Link",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                        cursorColor = MaterialTheme.colorScheme.primary,
+
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .align(Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = {
+                        showPopUp = false
+                        //add from spotify logic
+                    }) {
+                        Text(
+                            text = "Add",
                             color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -179,11 +317,13 @@ fun EditProfile(context: Context, navController: NavController){
 
 @Composable
 fun EditPlaylist(context: Context, navController: NavController) {
+    var name by remember { mutableStateOf(editedPlaylist!!.name) }
     LaunchedEffect(Unit) {
         if (editedPlaylist == null) {
-            editedPlaylist = Playlist(null, "", mutableListOf())
+            editedPlaylist = Playlist(generateRandomBase48(),null, "", mutableListOf())
         }
     }
+    val trackList = remember { editedPlaylist!!.tracks.toMutableStateList() }
     var showPopUp by remember { mutableStateOf(false) }
     var editedTrack by remember { mutableStateOf<Track?>(null) }
     Column(
@@ -193,8 +333,9 @@ fun EditPlaylist(context: Context, navController: NavController) {
     ) {
         if (editedPlaylist!!.link == null) {
             OutlinedTextField(
-                value = editedPlaylist!!.name,
-                onValueChange = { editedPlaylist!!.name = it },
+                value = name,
+                onValueChange = { editedPlaylist!!.name = it;
+                                name = it},
                 label = {
                     Text(
                         "Playlist Name",
@@ -220,7 +361,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
             )
         }
         LazyColumn {
-            items(editedPlaylist!!.tracks) { track ->
+            items(trackList) { track ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -229,7 +370,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     UniversalTextEntry(
-                        track.name, track.artist.joinToString { ", " },
+                        track.name, track.artist.joinToString (", "),
                         { clickedTrack ->
                             if (editedPlaylist!!.link == null) {
                                 editedTrack = clickedTrack as Track
@@ -238,6 +379,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
                         },
                         track
                     )
+                    var enabled by remember { mutableStateOf(track.enabled) }
                     Spacer(modifier = Modifier.weight(1f).padding(horizontal = 20.dp))
                     IconButton(
                         onClick = {
@@ -245,19 +387,23 @@ fun EditPlaylist(context: Context, navController: NavController) {
                                 tracks =
                                     editedPlaylist!!.tracks.map { item ->
                                         if (item.id == track.id) {
-                                            item.copy(enabled = mutableStateOf(!track.enabled.value))
+                                            item.copy(enabled = !track.enabled)
                                         } else {
                                             item
                                         }
-                                    }.toMutableList())
+                                    }.toMutableList()
+                            )
+
+                            enabled = track.enabled
                         },
                         modifier = Modifier.background(
                             shape = RoundedCornerShape(128.dp),
                             color = MaterialTheme.colorScheme.inverseOnSurface
                         ).size(32.dp)
                     ) {
+
                         Icon(
-                            painter = painterResource(id = if (track.enabled.value) R.drawable.visible else R.drawable.visibility_off),
+                            painter = painterResource(id = if (enabled) R.drawable.visible else R.drawable.visibility_off),
                             contentDescription = "disable",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
@@ -266,126 +412,8 @@ fun EditPlaylist(context: Context, navController: NavController) {
                     }
                 }
             }
-            if(editedPlaylist!!.link == null){
-                item{
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp)
-                            .align(Alignment.CenterHorizontally),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Button(onClick = {editedTrack = null; showPopUp = true}){
-                            Text(
-                                text = "Add Track",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        if(showPopUp){
-            LaunchedEffect(editedTrack) {
-                if(editedTrack == null){
-                    editedTrack = Track(
-                        id= generateRandomBase48(),
-                        name = "",
-                        artist = mutableListOf()
-                    )
-                }
-            }
-            Popup(
-                onDismissRequest = { showPopUp = false },
-                properties = PopupProperties(
-                    focusable = true,
-                    dismissOnBackPress = true
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(WindowInsets.systemBars.asPaddingValues())
-                ) {
-                    OutlinedTextField(
-                        value = editedTrack!!.name,
-                        onValueChange = { editedTrack!!.name = it },
-                        label = {
-                            Text(
-                                "Track Name",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                            cursorColor = MaterialTheme.colorScheme.primary,
-
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                        ),
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = editedTrack!!.artist.joinToString { ", " },
-                        onValueChange = { editedTrack!!.artist[0] = it },
-                        label = {
-                            Text(
-                                "Artist",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                            cursorColor = MaterialTheme.colorScheme.primary,
-
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                        ),
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = editedTrack!!.lyrics ?: "",
-                        onValueChange = { editedTrack!!.lyrics = it },
-                        label = {
-                            Text(
-                                "Lyrics",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                            cursorColor = MaterialTheme.colorScheme.primary,
-
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                        ),
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth()
-                    )
+            if (editedPlaylist!!.link == null) {
+                item {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -394,14 +422,15 @@ fun EditPlaylist(context: Context, navController: NavController) {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Button(onClick = {
-                            if(editedPlaylist!!.tracks.firstOrNull{it.id == editedTrack!!.id} == null){
-                                editedPlaylist!!.tracks.add(editedTrack!!)
-                            }else{
-                                editedPlaylist = editedPlaylist!!.copy(tracks = editedPlaylist!!.tracks.map{if(it.id == editedTrack!!.id) editedTrack!! else it}.toMutableList())
-                            }
-                        }){
+                            editedTrack = Track(
+                                id = generateRandomBase48(),
+                                name = "",
+                                artist = mutableListOf()
+                            );
+                            showPopUp = true
+                        }) {
                             Text(
-                                text = "Save",
+                                text = "Add Track",
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -418,13 +447,150 @@ fun EditPlaylist(context: Context, navController: NavController) {
             horizontalArrangement = Arrangement.Center
         ) {
             Button(onClick = {
-                editedProfile!!.playlists.
+                if(editedProfile!!.playlists.firstOrNull{it.id == editedPlaylist!!.id} == null){
+                    editedProfile!!.playlists.add(editedPlaylist!!)
+                }else{
+                    editedProfile = editedProfile!!.copy(playlists = editedProfile!!.playlists.map{if(it.id == editedPlaylist!!.id) editedPlaylist!! else it}.toMutableList())
+                }
+                navController.popBackStack()
             }){
                 Text(
                     text = "Save",
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodyMedium
                 )
+            }
+        }
+    }
+    if(showPopUp) {
+        var name by remember { mutableStateOf(editedTrack!!.name ) }
+        var artists by remember { mutableStateOf(editedTrack!!.artist.firstOrNull() ?: "") }
+        var lyrics by remember { mutableStateOf(editedTrack!!.lyrics) }
+        Box(modifier = Modifier.fillMaxWidth().background(color=Color.Black.copy(alpha = 0.5f))){        }
+        Popup(
+            onDismissRequest = { showPopUp = false },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true
+            ),
+            alignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(WindowInsets.systemBars.asPaddingValues())
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { editedTrack!!.name = it
+                                    name = it},
+                    label = {
+                        Text(
+                            "Track Name",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                        cursorColor = MaterialTheme.colorScheme.primary,
+
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = artists,
+                    onValueChange = {
+                        if(editedTrack!!.artist.size > 0){
+                            editedTrack!!.artist[0] = it
+                        }else{
+                            editedTrack!!.artist.add(it)
+                        }
+                        artists = it
+                                    },
+                    label = {
+                        Text(
+                            "Artist",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                        cursorColor = MaterialTheme.colorScheme.primary,
+
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = lyrics ?: "",
+                    onValueChange = { editedTrack!!.lyrics = it
+                                    lyrics = it},
+                    label = {
+                        Text(
+                            "Lyrics",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                        cursorColor = MaterialTheme.colorScheme.primary,
+
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .align(Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = {
+                        if(editedPlaylist!!.tracks.firstOrNull{it.id == editedTrack!!.id} == null){
+                            editedPlaylist!!.tracks.add(editedTrack!!)
+                        }else{
+                            editedPlaylist = editedPlaylist!!.copy(tracks = editedPlaylist!!.tracks.map{if(it.id == editedTrack!!.id) editedTrack!! else it}.toMutableList())
+                        }
+                        trackList.clear()
+                        trackList.addAll(editedPlaylist!!.tracks)
+                        showPopUp = false
+                    }){
+                        Text(
+                            text = "Save",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         }
     }

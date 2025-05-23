@@ -6,8 +6,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Profile( // The data class used for profile
+    val id: String,
     var name:String,//name of profile
-    var enabled: MutableState<Boolean> = mutableStateOf(true), // Is profile currently active
+    var enabled: Boolean = true, // Is profile currently active
     val playlists: MutableList<Playlist>
 )
 
@@ -17,11 +18,12 @@ data class Track(
     var name:String,
     var artist:MutableList<String>,
     var lyrics:String? = null,
-    var enabled: MutableState<Boolean> = mutableStateOf(true) // if song was disabled by user
+    var enabled: Boolean = true // if song was disabled by user
 )
 
 @Serializable
 data class Playlist(
+    val id: String,
     val link:String?, //Link In spotify or null for user added
     var name:String,
     val tracks:MutableList<Track>

@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = "playlists"
+                        startDestination = "profile_view"
                     ) {
                         //home screen
                         composable("main_menu") {
@@ -59,6 +59,21 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 context = LocalContext.current
                             )
+                        }
+                        //Profile browsing
+                        composable("profile_view"){
+                            ProfileScreen(context = LocalContext.current,
+                                navController = navController)
+                        }
+                        //Profile Editing screen
+                        composable("edit_profile"){
+                            EditProfile(context = LocalContext.current,
+                                navController = navController)
+                        }
+                        //Playlist Editing screen
+                        composable("edit_playlist"){
+                            EditPlaylist(context = LocalContext.current,
+                                navController = navController)
                         }
                     }
                 }

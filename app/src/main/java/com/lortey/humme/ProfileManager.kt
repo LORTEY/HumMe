@@ -18,7 +18,7 @@ public fun saveProfile(profile:Profile, context: Context){
     if (!dir.exists()) {
         dir.mkdirs()  // Creates parent directories if needed
     }
-    val file = File(dir, URLEncoder.encode(profile.name, StandardCharsets.UTF_8.toString()))
+    val file = File(dir, URLEncoder.encode(profile.id, StandardCharsets.UTF_8.toString()))
     val jsonString = jsonFormat.encodeToString(profile)
     file.writeText(jsonString)
 }
