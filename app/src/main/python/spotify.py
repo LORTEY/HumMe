@@ -15,6 +15,7 @@ class Playlist:
 @dataclass
 class Track:
     name:str
+    id:str
     artist:list
 
 def set_global_sp(SPOTIPY_CLIENT_ID,SPOTIPY_CLIENT_SECRET):
@@ -31,7 +32,6 @@ def set_global_sp(SPOTIPY_CLIENT_ID,SPOTIPY_CLIENT_SECRET):
 def get_playlist_tracks(playlist_url):
     # Extract playlist ID from URL
     playlist_id = playlist_url.split('/')[-1].split('?')[0]
-
     # Get playlist details
     playlist = sp.playlist(playlist_id)
 
@@ -41,6 +41,6 @@ def get_playlist_tracks(playlist_url):
 
     for item in tracks:
         track = item['track']
-        playlistData.tracks.append(Track(track['name'], [artist["name"] for artist in track['artists']]))
+        playlistData.tracks.append(Track(track['name'], track['id'] , [artist["name"] for artist in track['artists']]))
 
     return playlistData.to_json()

@@ -36,8 +36,19 @@ public fun InitializeSp(context:Context, apikeys:API):Boolean{
     return initialized
 }
 
-public fun getPlaylist(context:Context,playlistUri:String):Playlist{
+public fun getPlaylist(context:Context,playlistUri:String):PlaylistPython{
     val module = getModuleSpotify(context)
     val playlistStr = module.callAttr("get_playlist_tracks",playlistUri).toString()
-    return jsonFormat.decodeFromString<Playlist>(playlistStr)
+    return jsonFormat.decodeFromString<PlaylistPython>(playlistStr)
 }
+@Serializable
+data class PlaylistPython(
+    val name: String,
+    val tracks: List<TrackPython>
+)
+@Serializable
+data class TrackPython(
+    val name: String,
+    val id:String,
+    val artist: List<String>
+)

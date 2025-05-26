@@ -42,6 +42,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.lortey.humme.API
 import com.lortey.humme.getPlaylist
+import com.lortey.humme.playlistFromLink
 import com.lortey.humme.saveAPI
 
 var playlists:MutableList<Playlist>? = null
@@ -153,7 +154,7 @@ fun PlaylistScreen(context: Context, navController: NavHostController) {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Button(onClick = {
-                            val newPlaylistContent = getPlaylist(context, playlistUrl)
+                            val newPlaylistContent = playlistFromLink(context, playlistUrl)
                             if(playlists == null){
                                 playlists = mutableListOf(newPlaylistContent)
                             }else{

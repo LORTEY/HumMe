@@ -32,6 +32,8 @@ class MainActivity : ComponentActivity() {
         checkStoragePermissions()
         apikeys = loadAPI(applicationContext)
         InitializeSp(applicationContext, apikeys!!)
+        Log.d("hummepython", apikeys.toString())
+        playlistFromLink(context = applicationContext,link = "https://open.spotify.com/playlist/6N0XRQLECClib0KqKCkjmO?si=Ju3ZXaCmRISCWxWDy784Rg")
         enableEdgeToEdge()
         setContent {
             HumMeTheme {
