@@ -32,8 +32,7 @@ class MainActivity : ComponentActivity() {
         checkStoragePermissions()
         apikeys = loadAPI(applicationContext)
         InitializeSp(applicationContext, apikeys!!)
-        Log.d("hummepython", apikeys.toString())
-        playlistFromLink(context = applicationContext,link = "https://open.spotify.com/playlist/6N0XRQLECClib0KqKCkjmO?si=Ju3ZXaCmRISCWxWDy784Rg")
+
         enableEdgeToEdge()
         setContent {
             HumMeTheme {
@@ -46,7 +45,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = "profile_view"
+                        startDestination = "main_menu"
                     ) {
                         //home screen
                         composable("main_menu") {

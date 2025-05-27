@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,6 +35,7 @@ import androidx.navigation.NavHostController
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.lortey.humme.API
@@ -62,15 +65,32 @@ fun MainMenuRender(context: Context, navController: NavHostController){
             .background(MaterialTheme.colorScheme.background)
             .padding(WindowInsets.systemBars.asPaddingValues())
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.apps),
-            contentDescription = "Apis",
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .clickable { showPopup = !showPopup }
-                .width(80.dp)
-                .align(Alignment.TopStart)
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.align(Alignment.TopStart).background(MaterialTheme.colorScheme.inverseOnSurface, shape = RoundedCornerShape(128.dp)).padding(horizontal = 20.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    painter = painterResource(id = R.drawable.api),
+                    contentDescription = "Apis",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clickable { showPopup = !showPopup }
+                        .size(64.dp)
+                )
+                Text("APIs", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    painter = painterResource(id = R.drawable.profile),
+                    contentDescription = "ProfileSettings",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clickable { navController.navigate("profile_view") }
+                        .size(64.dp)
+                )
+                Text("Profiles", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
     }
     if(showPopup){
         Popup(

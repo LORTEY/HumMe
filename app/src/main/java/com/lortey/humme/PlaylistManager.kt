@@ -13,3 +13,10 @@ fun playlistFromLink(context: Context,link:String):Playlist{
     playlist.tracks.addAll(tracks)
     return playlist
 }
+
+fun playlistRefresh(context:Context, playlist: Playlist):Playlist{
+    val refreshedPlaylist:Playlist = playlistFromLink(context, playlist.link!!)
+    val newTracks = playlist.tracks
+    newTracks.addAll(refreshedPlaylist.tracks.filter{it.id !in newTracks.map { it.id }})
+    return playlist.copy(tracks = newTracks)
+}

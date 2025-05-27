@@ -67,24 +67,29 @@ fun ProfileScreen(context: Context, navController: NavController){
         .padding(WindowInsets.systemBars.asPaddingValues())){
         LazyColumn {
             items(profiles){profile->
+                var enabled by remember { mutableStateOf(profile.enabled) }
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 10.dp)){
+                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .background(MaterialTheme.colorScheme.inverseOnSurface)){
                     UniversalTextEntry(profile.name, profile.playlists.map{it.name}.joinToString (", "),
+                        Modifier.fillMaxWidth().weight(1.5f),/*justforquickeditting*/
                         {clickedProfile->
                             editedProfile = clickedProfile as Profile
                             navController.navigate("edit_profile")
                         },
                         profile)
-                    Spacer(modifier = Modifier.weight(1f).padding(horizontal = 20.dp))
+                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
                     Switch(
-                        checked = profile.enabled,
+                        checked = enabled,
                         onCheckedChange = { newValue ->
                             profile.enabled = newValue
+                            enabled = newValue
                             saveProfile(profile,context)
-                        }
+                        },
+                        modifier = Modifier.padding(horizontal = 10.dp)
                     )
                 }
             }
@@ -117,6 +122,7 @@ fun EditProfile(context: Context, navController: NavController){
             editedProfile = Profile(generateRandomBase48(),"", true, mutableListOf())
         }
     }
+    var playlists by remember { mutableStateOf(editedProfile!!.playlists) }
 
     var showPopUp by remember { mutableStateOf(false) }
 
@@ -153,34 +159,39 @@ fun EditProfile(context: Context, navController: NavController){
                 .fillMaxWidth()
         )
         LazyColumn {
-            items(editedProfile!!.playlists) { playlist ->
+            items(playlists) { playlist ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .background(MaterialTheme.colorScheme.inverseOnSurface)
                 ) {
                     UniversalTextEntry(
                         playlist.name,
                         playlist.tracks.map { it.name }.joinToString (", "),
+                        Modifier.fillMaxWidth().weight(1.5f),/*justforquickeditting*/
                         { clickedPlaylist ->
                             editedPlaylist = clickedPlaylist as Playlist
                             navController.navigate("edit_playlist")
                         },
                         playlist
                     )
-                    Spacer(modifier = Modifier.weight(1f).padding(horizontal = 20.dp))
+                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
                     IconButton(
                         onClick = {
                             editedProfile =
                                 editedProfile!!.copy(playlists = editedProfile!!.playlists.filterNot { it == playlist }
                                     .toMutableList())
+
+                            playlists = mutableListOf()
+                            playlists.addAll(editedProfile!!.playlists)
                         },
                         modifier = Modifier.background(
                             shape = RoundedCornerShape(128.dp),
                             color = MaterialTheme.colorScheme.inverseOnSurface
-                        ).size(32.dp)
+                        ).padding(horizontal = 10.dp).size(32.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.delete),
@@ -301,7 +312,9 @@ fun EditProfile(context: Context, navController: NavController){
                 ) {
                     Button(onClick = {
                         showPopUp = false
-                        //add from spotify logic
+                        editedProfile!!.playlists.add(playlistFromLink(context, playlistLink))
+                        playlists = mutableListOf()
+                        playlists.addAll(editedProfile!!.playlists)
                     }) {
                         Text(
                             text = "Add",
@@ -323,7 +336,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
             editedPlaylist = Playlist(generateRandomBase48(),null, "", mutableListOf())
         }
     }
-    val trackList = remember { editedPlaylist!!.tracks.toMutableStateList() }
+    var trackList by remember { mutableStateOf(editedPlaylist!!.tracks) }
     var showPopUp by remember { mutableStateOf(false) }
     var editedTrack by remember { mutableStateOf<Track?>(null) }
     Column(
@@ -360,54 +373,77 @@ fun EditPlaylist(context: Context, navController: NavController) {
                     .fillMaxWidth()
             )
         }
-        LazyColumn {
+        LazyColumn(modifier = Modifier.weight(0.8f)) {
             items(trackList) { track ->
+                var enabled by remember { mutableStateOf(track.enabled) }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .background(if(enabled) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.inverseOnSurface.copy(alpha=0.5f))
                 ) {
+
                     UniversalTextEntry(
                         track.name, track.artist.joinToString (", "),
+                        Modifier.fillMaxWidth().weight(1.5f),/*justforquickeditting*/
                         { clickedTrack ->
                             if (editedPlaylist!!.link == null) {
                                 editedTrack = clickedTrack as Track
                                 showPopUp = true
                             }
                         },
-                        track
+                        track,
+                        enabled
                     )
-                    var enabled by remember { mutableStateOf(track.enabled) }
-                    Spacer(modifier = Modifier.weight(1f).padding(horizontal = 20.dp))
+
+                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
                     IconButton(
                         onClick = {
-                            editedPlaylist = editedPlaylist!!.copy(
-                                tracks =
-                                    editedPlaylist!!.tracks.map { item ->
-                                        if (item.id == track.id) {
-                                            item.copy(enabled = !track.enabled)
-                                        } else {
-                                            item
-                                        }
-                                    }.toMutableList()
-                            )
+                            if(editedPlaylist!!.link != null) {
+                                editedPlaylist = editedPlaylist!!.copy(
+                                    tracks =
+                                        editedPlaylist!!.tracks.map { item ->
+                                            if (item.id == track.id) {
+                                                item.copy(enabled = !enabled)
+                                            } else {
+                                                item
+                                            }
+                                        }.toMutableList()
+                                )
+                                trackList = mutableListOf()
+                                trackList.addAll(editedPlaylist!!.tracks)
+                                enabled = !enabled
+                            }else{
+                                editedPlaylist = editedPlaylist!!.copy(
+                                    tracks =
+                                        editedPlaylist!!.tracks.filterNot { it.id == track.id }.toMutableList()
+                                )
+                                trackList = mutableListOf()
+                                trackList.addAll(editedPlaylist!!.tracks)
 
-                            enabled = track.enabled
+                            }
                         },
                         modifier = Modifier.background(
                             shape = RoundedCornerShape(128.dp),
                             color = MaterialTheme.colorScheme.inverseOnSurface
-                        ).size(32.dp)
+                        ).padding(horizontal = 10.dp).size(32.dp)
                     ) {
 
                         Icon(
-                            painter = painterResource(id = if (enabled) R.drawable.visible else R.drawable.visibility_off),
+                            painter = painterResource(id = if(editedPlaylist!!.link != null){
+                                if (enabled){
+                                    R.drawable.visible
+                                }else{
+                                    R.drawable.visibility_off
+                                }
+                            }else{
+                                R.drawable.delete}),
                             contentDescription = "disable",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
-                                .fillMaxSize()
+                                .size(32.dp)
                         )
                     }
                 }
@@ -580,7 +616,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
                         }else{
                             editedPlaylist = editedPlaylist!!.copy(tracks = editedPlaylist!!.tracks.map{if(it.id == editedTrack!!.id) editedTrack!! else it}.toMutableList())
                         }
-                        trackList.clear()
+                        trackList = mutableListOf()
                         trackList.addAll(editedPlaylist!!.tracks)
                         showPopUp = false
                     }){
@@ -596,8 +632,11 @@ fun EditPlaylist(context: Context, navController: NavController) {
     }
 }
 @Composable
-fun UniversalTextEntry(textA:String, textB:String, onClickAction:(Any) -> Unit, identity:Any){
-    Surface(modifier = Modifier.padding(vertical = 5.dp, horizontal = 4.dp).height(80.dp).clickable { onClickAction(identity) },  shadowElevation = 4.dp, color = MaterialTheme.colorScheme.inverseOnSurface) {
+fun UniversalTextEntry(textA:String, textB:String, modifier: Modifier, onClickAction:(Any) -> Unit, identity:Any, visible:Boolean = true){
+    fun fadeColor(color:Color):Color{
+        return if(visible) color else color.copy(alpha=0.5f)
+    }
+    Row(modifier = modifier.padding(vertical = 5.dp, horizontal = 4.dp).height(80.dp).clickable { onClickAction(identity) },   ) {
         Column(
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.background(Color.Transparent)
@@ -606,7 +645,7 @@ fun UniversalTextEntry(textA:String, textB:String, onClickAction:(Any) -> Unit, 
             Text(
                 text = textA,
                 modifier = Modifier.weight(1f).fillMaxSize().padding(horizontal = 10.dp),
-                color = MaterialTheme.colorScheme.primary,
+                color = fadeColor(MaterialTheme.colorScheme.primary),
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -614,7 +653,7 @@ fun UniversalTextEntry(textA:String, textB:String, onClickAction:(Any) -> Unit, 
             Text(
                 text = textB,
                 modifier = Modifier.weight(1f).fillMaxSize().padding(horizontal = 10.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = fadeColor(MaterialTheme.colorScheme.onSurfaceVariant),
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
