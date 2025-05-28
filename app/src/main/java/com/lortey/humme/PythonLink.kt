@@ -4,6 +4,7 @@ import android.content.Context
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
+import com.lortey.humme.ui.theme.apikeys
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -40,6 +41,19 @@ public fun getPlaylist(context:Context,playlistUri:String):PlaylistPython{
     val module = getModuleSpotify(context)
     val playlistStr = module.callAttr("get_playlist_tracks",playlistUri).toString()
     return jsonFormat.decodeFromString<PlaylistPython>(playlistStr)
+}
+public fun initializeGenius(context:Context, apikeys:API):Boolean{
+    val module = getModuleGenius(context)
+    val initialized = module.callAttr("set_global_genius", apikeys.geniusClientID).toBoolean()
+
+    return initialized
+}
+
+public fun getLyrics(context: Context, songName:String, Author:String):String{
+    initializeGenius(context, apikeys!!)
+    val module = getModuleGenius(context)
+    val playlistStr = module.callAttr("get_lyrics",Author, songName).toString()
+    return playlistStr
 }
 @Serializable
 data class PlaylistPython(

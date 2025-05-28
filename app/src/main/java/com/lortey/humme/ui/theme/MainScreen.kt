@@ -39,7 +39,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.lortey.humme.API
+import com.lortey.humme.InitializeSp
 import com.lortey.humme.R
+import com.lortey.humme.initializeGenius
 import com.lortey.humme.saveAPI
 
 public var apikeys:API? = null
@@ -251,6 +253,8 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                     )
                             showPopup= false
                         apikeys?.let{ saveAPI(it, context) }
+                        InitializeSp(context, apikeys!!)
+                        initializeGenius(context, apikeys!!)
                     }){
                         Text(
                             text = "Add",

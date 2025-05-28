@@ -31,6 +31,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -50,6 +51,7 @@ android {
                 install("spotipy")
                 install("dataclasses")
                 install("dataclasses_json")
+                install("lyricsgenius")
             }
         }
 

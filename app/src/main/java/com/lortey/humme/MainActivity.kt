@@ -31,7 +31,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         checkStoragePermissions()
         apikeys = loadAPI(applicationContext)
+
         InitializeSp(applicationContext, apikeys!!)
+        initializeGenius(applicationContext, apikeys!!)
 
         enableEdgeToEdge()
         setContent {

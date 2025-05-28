@@ -3,6 +3,7 @@ package com.lortey.humme
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +56,7 @@ import com.lortey.humme.ui.theme.playlists
 import com.lortey.humme.ui.theme.writePlaylists
 import java.util.Base64
 import java.security.SecureRandom
+import kotlin.time.Duration
 
 var editedProfile:Profile? = null
 var editedPlaylist:Playlist? = null
@@ -128,6 +131,10 @@ fun EditProfile(context: Context, navController: NavController){
 
     var playlistLink by remember { mutableStateOf("") }
 
+    var showProgress by remember { mutableStateOf(false) }
+
+    var currentProgressSong by remember{ mutableStateOf("")}
+    var currentProgressNumber by remember{ mutableStateOf(0)}
     Column(modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
         .padding(WindowInsets.systemBars.asPaddingValues())) {
@@ -312,7 +319,21 @@ fun EditProfile(context: Context, navController: NavController){
                 ) {
                     Button(onClick = {
                         showPopUp = false
-                        editedProfile!!.playlists.add(playlistFromLink(context, playlistLink))
+                        showProgress = true
+                        currentProgressSong = ""
+                        currentProgressNumber = 0
+                        val playlistFromLink = playlistFromLink(context, playlistLink)
+                        var x = 0
+                        playlistFromLink.tracks.forEach { track->
+                            currentProgressSong = "/${playlistFromLink.tracks.size} ${track.name}"
+                            if(track.artist.size > 0){
+                                track.lyrics = getLyrics(context, track.name, track.artist.first())
+                            }
+                            x++
+                            Toast.makeText(context,x.toString() + currentProgressSong,Toast.LENGTH_SHORT).show()
+
+                        }
+                        editedProfile!!.playlists.add(playlistFromLink)
                         playlists = mutableListOf()
                         playlists.addAll(editedProfile!!.playlists)
                     }) {
@@ -324,6 +345,22 @@ fun EditProfile(context: Context, navController: NavController){
                     }
                 }
             }
+        }
+    }
+
+    if(showProgress){
+        Popup(alignment = Alignment.Center) {
+            Column(modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)){
+                CircularProgressIndicator(modifier = Modifier.size(100.dp))
+                Text(
+                    currentProgressNumber.toString() + currentProgressSong,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+
         }
     }
 }
@@ -611,6 +648,10 @@ fun EditPlaylist(context: Context, navController: NavController) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Button(onClick = {
+
+                        if(lyrics == null || lyrics!!.isEmpty()){
+                            lyrics = getLyrics(context, name, artists)
+                        }
                         if(editedPlaylist!!.tracks.firstOrNull{it.id == editedTrack!!.id} == null){
                             editedPlaylist!!.tracks.add(editedTrack!!)
                         }else{
@@ -630,6 +671,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
             }
         }
     }
+
 }
 @Composable
 fun UniversalTextEntry(textA:String, textB:String, modifier: Modifier, onClickAction:(Any) -> Unit, identity:Any, visible:Boolean = true){
