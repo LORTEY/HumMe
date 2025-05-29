@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             // On Apple silicon, you can omit x86_64.
-            abiFilters += listOf("arm64-v8a","x86_64","armeabi-v7a")
+            abiFilters += listOf("arm64-v8a","x86_64")
         }
     }
 
@@ -46,7 +46,7 @@ android {
     }
     chaquopy {
         defaultConfig {
-            version =("3.10")
+            version =("3.13")
             pip {
                 install("spotipy")
                 install("dataclasses")

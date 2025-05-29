@@ -9,14 +9,11 @@ def set_global_genius(token):
         return False
 
 def get_lyrics(author, song_name):
-    try:
-        song = genius.search_song(song_name,author)
-        return song.lyrics
-    except:
         try:
-            artist = genius.search_artist(author)
-            for song in artist.songs:
-                if song.title == song_name:
-                    return song.lyrics
-        except:
-            return ""
+            song = genius.search_song(song_name,author)
+            if song is not None:
+                return song.lyrics
+            else:
+                return "ERROR: SONG NOT FOUND BY GENIUS"
+        except(TimeoutError):
+            return "ERROR: REQUEST TIMED OUT"

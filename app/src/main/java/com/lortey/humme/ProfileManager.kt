@@ -23,14 +23,20 @@ public fun saveProfile(profile:Profile, context: Context){
     file.writeText(jsonString)
 }
 
-public fun loadProfiles(context: Context):List<Profile> {
+public fun loadProfiles(context: Context, searchFor:String? = null):List<Profile> {
     val dir = File(context.getExternalFilesDir(null), profileDirectory)
     val listOfProfiles:MutableList<Profile> = mutableListOf()
     val loadedFiles = listFilesInFilesDir(context)
     loadedFiles.forEach { filename->
-        val file = File(dir, filename)
-        val content = file.readText()
-        listOfProfiles.add( jsonFormat.decodeFromString<Profile>(content))
+        if(searchFor == null) {
+            val file = File(dir, filename)
+            val content = file.readText()
+            listOfProfiles.add(jsonFormat.decodeFromString<Profile>(content))
+        }else if(filename == searchFor){
+            val file = File(dir, filename)
+            val content = file.readText()
+            return listOf(jsonFormat.decodeFromString<Profile>(content))
+        }
     }
     return listOfProfiles.toList()
 }

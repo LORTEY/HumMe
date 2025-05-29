@@ -1,10 +1,7 @@
-package com.lortey.humme
+package com.lortey.humme.ui.theme
 
 import android.content.Context
-import android.os.Build
-import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,17 +28,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,15 +45,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
-import com.lortey.humme.ui.theme.loadPlaylists
-import com.lortey.humme.ui.theme.playlists
-import com.lortey.humme.ui.theme.writePlaylists
+import com.lortey.humme.LyricsRequest
+import com.lortey.humme.Playlist
+import com.lortey.humme.Profile
+import com.lortey.humme.R
+import com.lortey.humme.Track
+import com.lortey.humme.addRequest
+import com.lortey.humme.getLyrics
+import com.lortey.humme.loadProfiles
+import com.lortey.humme.playlistFromLink
+import com.lortey.humme.refreshLyrics
+import com.lortey.humme.saveProfile
 import java.util.Base64
 import java.security.SecureRandom
-import kotlin.time.Duration
 
-var editedProfile:Profile? = null
-var editedPlaylist:Playlist? = null
+var editedProfile: Profile? = null
+var editedPlaylist: Playlist? = null
 
 @Composable
 fun ProfileScreen(context: Context, navController: NavController){
@@ -259,6 +260,7 @@ fun EditProfile(context: Context, navController: NavController){
         ) {
             Button(onClick = {
                 saveProfile(editedProfile!!, context)
+                refreshLyrics(context)
                 navController.popBackStack()
             }) {
                 Text(
@@ -319,23 +321,14 @@ fun EditProfile(context: Context, navController: NavController){
                 ) {
                     Button(onClick = {
                         showPopUp = false
-                        showProgress = true
-                        currentProgressSong = ""
-                        currentProgressNumber = 0
                         val playlistFromLink = playlistFromLink(context, playlistLink)
-                        var x = 0
-                        playlistFromLink.tracks.forEach { track->
-                            currentProgressSong = "/${playlistFromLink.tracks.size} ${track.name}"
-                            if(track.artist.size > 0){
-                                track.lyrics = getLyrics(context, track.name, track.artist.first())
-                            }
-                            x++
-                            Toast.makeText(context,x.toString() + currentProgressSong,Toast.LENGTH_SHORT).show()
 
-                        }
                         editedProfile!!.playlists.add(playlistFromLink)
                         playlists = mutableListOf()
                         playlists.addAll(editedProfile!!.playlists)
+                        addRequest(context,
+                            buildList { playlistFromLink.tracks.forEach{ add(LyricsRequest(
+                                generateRandomBase48(), it.artist.first(), it.name, editedProfile!!.id, PlaylistId = playlistFromLink.id, it.id))} })
                     }) {
                         Text(
                             text = "Add",
@@ -345,22 +338,6 @@ fun EditProfile(context: Context, navController: NavController){
                     }
                 }
             }
-        }
-    }
-
-    if(showProgress){
-        Popup(alignment = Alignment.Center) {
-            Column(modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)){
-                CircularProgressIndicator(modifier = Modifier.size(100.dp))
-                Text(
-                    currentProgressNumber.toString() + currentProgressSong,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-
         }
     }
 }
@@ -476,7 +453,8 @@ fun EditPlaylist(context: Context, navController: NavController) {
                                     R.drawable.visibility_off
                                 }
                             }else{
-                                R.drawable.delete}),
+                                R.drawable.delete
+                            }),
                             contentDescription = "disable",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
