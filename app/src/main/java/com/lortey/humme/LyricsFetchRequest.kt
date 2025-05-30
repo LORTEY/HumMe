@@ -56,31 +56,11 @@ suspend fun handelRequests(queue:List<LyricsRequest>, context:Context){
             if (playlist != null) {
                 val track = playlist.tracks.find { it.id == request.TrackId}
                 if(track!= null){
-                    if(track.lyrics == null || track.lyrics!!.isEmpty()){
+                    if(getLyrics(track.id,context).isEmpty()){
                         val lyrics = getLyrics(context,request.SongName,request.Artist)
                         if (lyrics != "ERROR: REQUEST TIMED OUT"){
 
-                            playlist = playlist.copy(
-                                tracks =
-                                    playlist.tracks.map { item ->
-                                        if (item.id == request.TrackId) {
-                                            item.copy(lyrics = lyrics)
-                                        } else {
-                                            item
-                                        }
-                                    }.toMutableList()
-                            )
-                            profile = profile.copy(
-                                playlists =
-                                    profile.playlists.map { item ->
-                                        if (item.id == request.PlaylistId) {
-                                            playlist
-                                        } else {
-                                            item
-                                        }
-                                    }.toMutableList()
-                            )
-                            saveProfile(profile,context)
+                            saveLyrics(track.id, context ,lyrics)
                             processedIDList.add(request.TrackId)
                         }
                     }else{

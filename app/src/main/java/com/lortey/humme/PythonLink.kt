@@ -44,7 +44,7 @@ public fun getPlaylist(context:Context,playlistUri:String):PlaylistPython{
 }
 public fun initializeGenius(context:Context, apikeys:API):Boolean{
     val module = getModuleGenius(context)
-    val initialized = module.callAttr("set_global_genius", apikeys.geniusClientID).toBoolean()
+    val initialized = module.callAttr("set_global_genius", apikeys.geniusAccessToken).toBoolean()
 
     return initialized
 }

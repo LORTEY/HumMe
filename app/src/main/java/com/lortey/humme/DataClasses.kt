@@ -17,7 +17,7 @@ data class Track(
     val id: String, //Spotify id or null for user added
     var name:String,
     var artist:MutableList<String>,
-    var lyrics:String? = null,
+    //var lyrics:String? = null,
     var enabled: Boolean = true // if song was disabled by user
 )
 

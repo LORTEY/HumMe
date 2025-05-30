@@ -18,6 +18,8 @@ import androidx.navigation.compose.rememberNavController
 import com.lortey.cardflare.ui.theme.HumMeTheme
 import com.lortey.humme.ui.theme.EditPlaylist
 import com.lortey.humme.ui.theme.EditProfile
+import com.lortey.humme.ui.theme.EndScreen
+import com.lortey.humme.ui.theme.GameScreen
 import com.lortey.humme.ui.theme.MainMenuRender
 
 import com.lortey.humme.ui.theme.PlaylistScreen
@@ -74,6 +76,16 @@ class MainActivity : ComponentActivity() {
                         //Playlist Editing screen
                         composable("edit_playlist"){
                             EditPlaylist(context = LocalContext.current,
+                                navController = navController)
+                        }
+                        //Game Screen
+                        composable("game_screen"){
+                            GameScreen(context = LocalContext.current,
+                                navController = navController)
+                        }
+                        //Sum up screen
+                        composable("end_screen"){
+                            EndScreen(context = LocalContext.current,
                                 navController = navController)
                         }
                     }

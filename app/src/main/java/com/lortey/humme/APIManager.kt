@@ -13,9 +13,9 @@ private val jsonFormat = Json { prettyPrint = true } // jsonFormat
 public data class API(
     var spotifyClientID:String?,
     var spotifyClientSecret:String?,
-    var spotifyRedirectURI:String?,
-    var geniusClientID:String?,
-    var geniusClientSecret:String?,
+    //var spotifyRedirectURI:String?,
+    var geniusAccessToken:String?,
+    //var geniusClientSecret:String?,
 )
 
 public fun saveAPI(apiKeys:API, context: Context){
@@ -30,7 +30,7 @@ public fun loadAPI(context: Context):API{
         val content = file.readText()
         return jsonFormat.decodeFromString<API>(content)
     }catch(e:Exception){
-        return API(null,null,null,null,null)
+        return API(null,null,null)
     }
 
 }

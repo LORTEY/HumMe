@@ -52,15 +52,11 @@ fun MainMenuRender(context: Context, navController: NavHostController){
 
     var spotifyClientID by remember{mutableStateOf("")}
     var spotifyClientSecret by remember{mutableStateOf("")}
-    var spotifyRedirectURI by remember{mutableStateOf("")}
-    var geniusClientID by remember{mutableStateOf("")}
-    var geniusClientSecret by remember{mutableStateOf("")}
+    var geniusAccessToken by remember{mutableStateOf("")}
     LaunchedEffect(Unit) {
         spotifyClientID = apikeys?.spotifyClientID ?: ""
         spotifyClientSecret = apikeys?.spotifyClientSecret ?: ""
-        spotifyRedirectURI = apikeys?.spotifyRedirectURI ?: ""
-        geniusClientID = apikeys?.geniusClientID ?: ""
-        geniusClientSecret = apikeys?.geniusClientSecret ?: ""
+        geniusAccessToken = apikeys?.geniusAccessToken ?: ""
     }
     Box(
         modifier = Modifier
@@ -92,7 +88,15 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                 Text("Profiles", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
             }
         }
-
+        Icon(
+            painter = painterResource(id = R.drawable.play),
+            contentDescription = "Play",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .clickable {savedGame = null; navController.navigate("game_screen") }
+                .size(128.dp)
+                .align(Alignment.Center)
+        )
     }
     if(showPopup){
         Popup(
@@ -159,12 +163,13 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                         .padding(10.dp)
                         .fillMaxWidth()
                 )
+
                 OutlinedTextField(
-                    value = spotifyRedirectURI,
-                    onValueChange = { spotifyRedirectURI = it },
+                    value = geniusAccessToken,
+                    onValueChange = { geniusAccessToken = it },
                     label = {
                         Text(
-                            "Spotify Redirect URI",
+                            "Genius Access Token",
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -185,58 +190,7 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                         .padding(10.dp)
                         .fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = geniusClientID,
-                    onValueChange = { geniusClientID = it },
-                    label = {
-                        Text(
-                            "Genius Client ID",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                        cursorColor = MaterialTheme.colorScheme.primary,
-
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                    ),
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = geniusClientSecret,
-                    onValueChange = { geniusClientSecret = it },
-                    label = {
-                        Text(
-                            "Genius Client Secret",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                        cursorColor = MaterialTheme.colorScheme.primary,
-
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                    ),
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -247,9 +201,7 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                     Button(onClick = {apikeys = API(
                         spotifyClientID = if(spotifyClientID.isEmpty()) null else spotifyClientID,
                         spotifyClientSecret = if(spotifyClientSecret.isEmpty()) null else spotifyClientSecret,
-                        spotifyRedirectURI = if(spotifyRedirectURI.isEmpty()) null else spotifyRedirectURI,
-                        geniusClientID = if(geniusClientID.isEmpty()) null else geniusClientID,
-                        geniusClientSecret = if(geniusClientSecret.isEmpty()) null else geniusClientSecret
+                        geniusAccessToken = if(geniusAccessToken.isEmpty()) null else geniusAccessToken,
                     )
                             showPopup= false
                         apikeys?.let{ saveAPI(it, context) }

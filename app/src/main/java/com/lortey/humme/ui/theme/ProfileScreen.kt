@@ -55,6 +55,7 @@ import com.lortey.humme.getLyrics
 import com.lortey.humme.loadProfiles
 import com.lortey.humme.playlistFromLink
 import com.lortey.humme.refreshLyrics
+import com.lortey.humme.saveLyrics
 import com.lortey.humme.saveProfile
 import java.util.Base64
 import java.security.SecureRandom
@@ -516,7 +517,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
     if(showPopUp) {
         var name by remember { mutableStateOf(editedTrack!!.name ) }
         var artists by remember { mutableStateOf(editedTrack!!.artist.firstOrNull() ?: "") }
-        var lyrics by remember { mutableStateOf(editedTrack!!.lyrics) }
+        var lyrics by remember { mutableStateOf(getLyrics(editedTrack!!.id,context)) }
         Box(modifier = Modifier.fillMaxWidth().background(color=Color.Black.copy(alpha = 0.5f))){        }
         Popup(
             onDismissRequest = { showPopUp = false },
@@ -593,8 +594,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
                 )
                 OutlinedTextField(
                     value = lyrics ?: "",
-                    onValueChange = { editedTrack!!.lyrics = it
-                                    lyrics = it},
+                    onValueChange = { lyrics = it},
                     label = {
                         Text(
                             "Lyrics",
@@ -635,6 +635,7 @@ fun EditPlaylist(context: Context, navController: NavController) {
                         }else{
                             editedPlaylist = editedPlaylist!!.copy(tracks = editedPlaylist!!.tracks.map{if(it.id == editedTrack!!.id) editedTrack!! else it}.toMutableList())
                         }
+                        saveLyrics(editedTrack!!.id, context ,lyrics)
                         trackList = mutableListOf()
                         trackList.addAll(editedPlaylist!!.tracks)
                         showPopUp = false
