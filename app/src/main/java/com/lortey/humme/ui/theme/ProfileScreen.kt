@@ -628,7 +628,13 @@ fun EditPlaylist(context: Context, navController: NavController) {
                     Button(onClick = {
 
                         if(lyrics == null || lyrics!!.isEmpty()){
-                            lyrics = getLyrics(context, name, artists)
+                            addRequest(context, request = listOf(LyricsRequest(
+                                generateRandomBase48(),
+                                artists.split(",")[0],
+                                name, editedProfile!!.id,
+                                editedPlaylist!!.id,
+                                editedTrack!!.id)),
+                                true)
                         }
                         if(editedPlaylist!!.tracks.firstOrNull{it.id == editedTrack!!.id} == null){
                             editedPlaylist!!.tracks.add(editedTrack!!)

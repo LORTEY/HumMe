@@ -24,6 +24,7 @@ import com.lortey.humme.ui.theme.MainMenuRender
 
 import com.lortey.humme.ui.theme.PlaylistScreen
 import com.lortey.humme.ui.theme.ProfileScreen
+import com.lortey.humme.ui.theme.SettingsMenu
 import com.lortey.humme.ui.theme.apikeys
 
 class MainActivity : ComponentActivity() {
@@ -34,6 +35,8 @@ class MainActivity : ComponentActivity() {
 
         InitializeSp(applicationContext, apikeys!!)
         initializeGenius(applicationContext, apikeys!!)
+
+        loadSettings(context = applicationContext)
 
         enableEdgeToEdge()
         setContent {
@@ -66,6 +69,11 @@ class MainActivity : ComponentActivity() {
                         //Profile browsing
                         composable("profile_view"){
                             ProfileScreen(context = LocalContext.current,
+                                navController = navController)
+                        }
+                        //Settings
+                        composable("settings"){
+                            SettingsMenu(context = LocalContext.current,
                                 navController = navController)
                         }
                         //Profile Editing screen

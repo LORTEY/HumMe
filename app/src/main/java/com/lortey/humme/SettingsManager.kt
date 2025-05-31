@@ -143,37 +143,24 @@ val AppSettings = mutableStateMapOf(
         type = SettingsType.BOOLEAN,
         state = false
     ),
-    "Flashcard Swipe Threshold" to SettingEntry(
+    "Answer Time" to SettingEntry(
         category = Category.Preferences,
-        name = "Flashcard Swipe Threshold",
-        description = "The distance a flashcard needs to be swiped to be count as a wrong or right answer",
+        name = "Answer Time",
+        description = "Answer time for each song",
         type = SettingsType.SLIDER,
         state = 300f,
-        sliderData = mapOf("from" to 0f, "to" to 800f, "steps" to 15f)
+        sliderData = mapOf("from" to 0f, "to" to 300f, "steps" to 19f)
     ),
-   /* "Flip Flashcard Right Wrong Answer" to SettingEntry(
+    "Infinite Answer Time" to SettingEntry(
         category = Category.Preferences,
-        name = "Flip Flashcard Right Wrong Answer",
-        description = "If enabled, The wrong answer option will be on the left and right answer will be on the right",
+        name = "Infinite Answer Time",
+        description = "Answer time to guess each song will be infinite",
         type = SettingsType.BOOLEAN,
-        state = false
-    ),*/
-    "Do Not Show System Apps" to SettingEntry(
-        category = Category.Other,
-        name = "Do Not Show System Apps",
-        description = "If enabled, You will not be able to find apps flagged as system apps when setting a LaunchOn rule.",
-        type = SettingsType.BOOLEAN,
-        state = true
+        state = false,
     ),
-    "Bin Auto Empty Time" to SettingEntry(
-        category = Category.Bin,
-        name = "Bin Auto Empty Time",
-        description = "The Time it takes the bin to remove a flashcard added to it.",
-        type = SettingsType.CHOOSE,
-        state = Time.MONTH,
-        dropDownMenuEntries = mapOf("One Day" to Time.DAY,"One Week" to Time.WEEK, "Two Weeks" to Time.TWO_WEEKS,"One Month" to Time.MONTH, "Two Months" to Time.TWO_MONTHS)
-    )
-    ,
+
+
+    /*implement later
     "Language" to SettingEntry(
         category = Category.Preferences,
         name = "Language",
@@ -182,7 +169,7 @@ val AppSettings = mutableStateMapOf(
         state = Translations("Polski",TypeOfTranslation.Default),
         stateDataclass = "translations",
         navChoose = "language_choose"
-        )
+        )*/
 )
 
 //Setting

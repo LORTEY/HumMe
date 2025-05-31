@@ -87,6 +87,17 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                 )
                 Text("Profiles", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
             }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    painter = painterResource(id = R.drawable.settings),
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clickable { navController.navigate("settings") }
+                        .size(64.dp)
+                )
+                Text("Settings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            }
         }
         Icon(
             painter = painterResource(id = R.drawable.play),

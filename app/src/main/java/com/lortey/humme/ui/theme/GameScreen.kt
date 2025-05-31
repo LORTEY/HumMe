@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -46,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.lortey.humme.AppSettings
 import com.lortey.humme.Playlist
 import com.lortey.humme.R
 import com.lortey.humme.Track
@@ -55,6 +57,10 @@ import com.lortey.humme.getNextSong
 import com.lortey.humme.getPreviousSong
 import com.lortey.humme.loadProfiles
 import com.lortey.humme.rateSong
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -62,16 +68,18 @@ import kotlinx.serialization.json.Json
 data class savedGameInstance(
     var tracksToPick :MutableList<Track>,
     var previousSongs :MutableList<Pair<Track,Boolean>>,
-    var currentSong: Track
+    var currentSong: Track,
+    var timeRemaining: Int
 )
-
 public var savedGame:savedGameInstance? = null
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameScreen(context: Context, navController: NavController) {
+    val defaultTime = remember{ if(AppSettings["Infinite Answer Time"]!!.state == true) null else (AppSettings["Answer Time"]!!.state as Float).toInt()}
     var tracksToPick by remember{ mutableStateOf(getActiveTracks(context).toMutableList()) }
     var previousSongs by remember { mutableStateOf(mutableListOf<Pair<Track,Boolean>>()) }
     var currentSong by remember { mutableStateOf(Track("","", mutableListOf(),true)) }
+    var timeRemaining by remember { mutableStateOf(defaultTime ?: 0) }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -79,6 +87,56 @@ fun GameScreen(context: Context, navController: NavController) {
     var currentColor by remember{ mutableStateOf(Color.Green)}
     val scope = rememberCoroutineScope()
     var showFade by remember{ mutableStateOf(false)}
+
+
+    var currentJob by remember { mutableStateOf<Job?>(null) }
+    if(defaultTime != null){
+        LaunchedEffect(currentSong) {
+            currentJob?.cancel()
+            currentJob = coroutineScope {
+                launch {
+                    while (timeRemaining > -1) {
+                        delay(1000L) // wait 1 second
+
+                        timeRemaining--
+                        if (timeRemaining < 0) {
+                            previousSongs = rateSong(currentSong, false, previousSongs)
+                            val newSong = getNextSong(tracksToPick)
+                            if (newSong != null) {
+                                currentColor = Color.Red
+                                showFade = true
+                                scope.launch {
+                                    delay(200)
+                                    delay(200)
+                                    showFade = false
+                                }
+                                currentSong = newSong.second
+                                tracksToPick = newSong.first
+                                timeRemaining = defaultTime ?: 0
+                                savedGame = savedGameInstance(
+                                    tracksToPick,
+                                    previousSongs,
+                                    currentSong,
+                                    timeRemaining
+                                )
+
+                            } else {
+                                savedGame = savedGameInstance(
+                                    tracksToPick,
+                                    previousSongs,
+                                    currentSong,
+                                    timeRemaining
+                                )
+                                navController.navigate("end_screen")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
 
     LaunchedEffect(Unit) {
         if(savedGame == null) {
@@ -92,7 +150,8 @@ fun GameScreen(context: Context, navController: NavController) {
             savedGame = savedGameInstance(
                 tracksToPick,
                 previousSongs,
-                currentSong
+                currentSong,
+                timeRemaining
             )
         }else{
             tracksToPick = savedGame!!.tracksToPick
@@ -106,7 +165,8 @@ fun GameScreen(context: Context, navController: NavController) {
             savedGame = savedGameInstance(
                 tracksToPick,
                 previousSongs,
-                currentSong
+                currentSong,
+                timeRemaining
             )
             navController.navigate("end_screen")
         }
@@ -131,17 +191,20 @@ fun GameScreen(context: Context, navController: NavController) {
                             }
                             currentSong = newSong.second
                             tracksToPick = newSong.first
+                            timeRemaining = defaultTime ?: 0
                             savedGame = savedGameInstance(
                                 tracksToPick,
                                 previousSongs,
-                                currentSong
+                                currentSong,
+                                timeRemaining
                             )
 
                         }else{
                             savedGame = savedGameInstance(
                                 tracksToPick,
                                 previousSongs,
-                                currentSong
+                                currentSong,
+                                timeRemaining
                             )
                             navController.navigate("end_screen")
                         }
@@ -158,12 +221,14 @@ fun GameScreen(context: Context, navController: NavController) {
                                 delay(200)
                                 showFade = false
                             }
+                            timeRemaining = defaultTime ?: 0
                             currentSong = previousData.second
                             previousSongs = previousData.first
                             savedGame = savedGameInstance(
                                 tracksToPick,
                                 previousSongs,
-                                currentSong
+                                currentSong,
+                                timeRemaining
                             )
 
                         }
@@ -180,12 +245,14 @@ fun GameScreen(context: Context, navController: NavController) {
                                 delay(200)
                                 showFade = false
                             }
+                            timeRemaining = defaultTime ?: 0
                             currentSong = previousData.second
                             previousSongs = previousData.first
                             savedGame = savedGameInstance(
                                 tracksToPick,
                                 previousSongs,
-                                currentSong
+                                currentSong,
+                                timeRemaining
                             )
 
                         } }
@@ -205,19 +272,22 @@ fun GameScreen(context: Context, navController: NavController) {
                                 delay(200)
                                 showFade = false
                             }
+                            timeRemaining = defaultTime ?: 0
                             currentSong = newSong.second
                             tracksToPick = newSong.first
                             savedGame = savedGameInstance(
                                 tracksToPick,
                                 previousSongs,
-                                currentSong
+                                currentSong,
+                                timeRemaining
                             )
 
                         }else{
                             savedGame = savedGameInstance(
                                 tracksToPick,
                                 previousSongs,
-                                currentSong
+                                currentSong,
+                                timeRemaining
                             )
                             navController.navigate("end_screen")
 
@@ -267,15 +337,26 @@ fun GameScreen(context: Context, navController: NavController) {
                     .fillMaxSize()
             )
         }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.7f), verticalArrangement = Arrangement.Center){
+            Text(currentSong.name,
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier =  Modifier.fillMaxWidth())
 
-        Text(currentSong.name,
-            style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.7f))
+            if(defaultTime != null){
+                Text("${(timeRemaining - timeRemaining%60)/60}:${if (timeRemaining%60 < 10) "0" else ""}${timeRemaining%60}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth())
+            }
+
+        }
+
 
         Text(currentSong.artist.joinToString ("\n" ).replace(",","\n"),
-            style = MaterialTheme.typography.displaySmall,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.align(Alignment.BottomEnd).fillMaxWidth(0.5f))
