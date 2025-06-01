@@ -2,12 +2,12 @@ package com.lortey.cardflare.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Blue10 = Color(0xff012a32)
-val Blue20 = Color(0xff035563)
-val Blue30 = Color(0xff047f95)
-val Blue40 = Color(0xff05aac7)
-val Blue80 = Color(0xff9ceefc)
-val Blue90 = Color(0xffcdf6fe)
+val Pink10 = Color(0xff33001a)
+val Pink20 = Color(0xff660033)
+val Pink30 = Color(0xff99004d)
+val Pink40 = Color(0xffcc0066)
+val Pink80 = Color(0xffff99cc)
+val Pink90 = Color(0xffffcce6)
 
 val Orange10 = Color(0xff331400)
 val Orange20 = Color(0xff662900)
@@ -36,8 +36,8 @@ val Grey90 = Color(0xFFE0E3E3)
 val Grey95 = Color(0xFFEFF1F1)
 val Grey99 = Color(0xFFFBFDFD)
 
-val BlueGrey30 = Color(0xFF2e626b)
-val BlueGrey50 = Color(0xFF4da3b3)
+val PinkGrey30 = Color(0xFF73264e)
+val PinkGrey50 = Color(0xFFbf4082)
 val BlueGrey60 = Color(0xFF70b6c2)
-val BlueGrey80 = Color(0xFFb8dae0)
-val BlueGrey90 = Color(0xFFdbedf0)
+val PinkGrey80 = Color(0xFFe6b3cd)
+val PinkGrey90 = Color(0xFFf2d9e6)

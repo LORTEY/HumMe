@@ -13,6 +13,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -214,7 +215,7 @@ fun GameScreen(context: Context, navController: NavController) {
                         val previousData = getPreviousSong(previousSongs)
                         if(previousData != null){
                             tracksToPick.add(currentSong)
-                            currentColor = Color.Blue
+                            currentColor = Color.Cyan
                             showFade = true
                             scope.launch {
                                 delay(200)
@@ -308,7 +309,7 @@ fun GameScreen(context: Context, navController: NavController) {
             modifier = Modifier.background(
                 shape = RoundedCornerShape(128.dp),
                 color = MaterialTheme.colorScheme.inverseOnSurface
-            ).padding(10.dp).size(64.dp).align(Alignment.TopStart)
+            ).padding(10.dp).size(48.dp).align(Alignment.TopStart)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.lyrics),
@@ -347,19 +348,21 @@ fun GameScreen(context: Context, navController: NavController) {
             if(defaultTime != null){
                 Text("${(timeRemaining - timeRemaining%60)/60}:${if (timeRemaining%60 < 10) "0" else ""}${timeRemaining%60}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth())
             }
 
         }
 
+        Row( horizontalArrangement = Arrangement.End,modifier = Modifier.align(Alignment.BottomEnd).fillMaxWidth(0.5f)){
+            Text(currentSong.artist.joinToString ("\n" ).replace(",","\n"),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+        }
 
-        Text(currentSong.artist.joinToString ("\n" ).replace(",","\n"),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.BottomEnd).fillMaxWidth(0.5f))
     }
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -372,7 +375,7 @@ fun GameScreen(context: Context, navController: NavController) {
                     Text(
                     getLyrics(currentSong.id, context).let{ if(it.isEmpty()) "No Lyrics Added Or Found" else it},
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding((5.dp)))}
             }
 
@@ -389,7 +392,7 @@ fun GameScreen(context: Context, navController: NavController) {
             Icon(
                 painter = painterResource(id = if(currentColor == Color.Red) R.drawable.wrong else if(currentColor == Color.Green) R.drawable.ok else R.drawable.back),
                 contentDescription = "lyrics",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .fillMaxSize(0.5f).align(Alignment.Center)
             )

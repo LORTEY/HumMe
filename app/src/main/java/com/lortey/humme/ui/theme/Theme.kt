@@ -16,11 +16,11 @@ import com.lortey.humme.Themes
 
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Blue80,
-    onPrimary = Blue20,
-    primaryContainer = Blue30,
-    onPrimaryContainer = Blue90,
-    inversePrimary = Blue40,
+    primary = Pink80,
+    onPrimary = Pink20,
+    primaryContainer = Pink30,
+    onPrimaryContainer = Pink90,
+    inversePrimary = Pink40,
     secondary = Violet80,
     onSecondary = Violet20,
     secondaryContainer = Violet30,
@@ -35,21 +35,21 @@ private val DarkColorScheme = darkColorScheme(
     onTertiaryContainer = Orange90,
     background = Grey10,
     onBackground = Grey90,
-    surface = BlueGrey30,
-    onSurface = BlueGrey80,
+    surface = PinkGrey30,
+    onSurface = PinkGrey80,
     inverseSurface = Grey90,
     inverseOnSurface = Grey20,
-    surfaceVariant = BlueGrey30,
-    onSurfaceVariant = BlueGrey80,
-    outline = BlueGrey80
+    surfaceVariant = PinkGrey30,
+    onSurfaceVariant = PinkGrey80,
+    outline = PinkGrey80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Blue30,
+    primary = Pink30,
     onPrimary = Color.White,
-    primaryContainer = Blue90,
-    onPrimaryContainer = Blue10,
-    inversePrimary = Blue80,
+    primaryContainer = Pink90,
+    onPrimaryContainer = Pink10,
+    inversePrimary = Pink80,
     secondary = Violet40,
     onSecondary = Color.White,
     secondaryContainer = Violet90,
@@ -64,13 +64,13 @@ private val LightColorScheme = lightColorScheme(
     onTertiaryContainer = Orange10,
     background = Grey99,
     onBackground = Grey10,
-    surface = BlueGrey90,
-    onSurface = BlueGrey30,
+    surface = PinkGrey90,
+    onSurface = PinkGrey30,
     inverseSurface = Grey20,
     inverseOnSurface = Grey90,
-    surfaceVariant = BlueGrey90,
-    onSurfaceVariant = BlueGrey30,
-    outline = BlueGrey50
+    surfaceVariant = PinkGrey90,
+    onSurfaceVariant = PinkGrey30,
+    outline = PinkGrey50
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
