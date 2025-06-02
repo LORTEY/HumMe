@@ -58,6 +58,14 @@ suspend fun handelRequests(queue:List<LyricsRequest>, context:Context){
                 if(track!= null){
                     if(getLyrics(track.id,context).isEmpty()){
                         val lyrics = getLyrics(context,request.SongName,request.Artist)
+                        if(lyrics == "ERROR: NO CONNECTION" || lyrics == "ERROR: WRONG API"){
+                            //if those errors occur it is useless to continue
+                            requestHandler!!.stopHandling = false
+                            requestHandler!!.processedIDList = processedIDList.toMutableList()
+                            requestHandler!!.processedList = queue.toMutableList()
+                            requestHandler!!.running = false
+                            return
+                        }
                         if (lyrics != "ERROR: REQUEST TIMED OUT"){
 
                             saveLyrics(track.id, context ,lyrics)

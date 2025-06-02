@@ -1,4 +1,6 @@
 from lyricsgenius import Genius
+import requests
+
 genius = None
 def set_global_genius(token):
     try:
@@ -17,3 +19,13 @@ def get_lyrics(author, song_name):
                 return "ERROR: SONG NOT FOUND BY GENIUS"
         except(TimeoutError):
             return "ERROR: REQUEST TIMED OUT"
+        except requests.exceptions.ConnectionError:
+            # likely no internet connection
+            return "ERROR: NO CONNECTION"
+        except ConnectionError:
+            # likely no internet connection
+            return "ERROR: NO CONNECTION"
+        except requests.exceptions.HTTPError:
+            # likely wrong api
+            return "ERROR: WRONG API"
+

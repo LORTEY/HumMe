@@ -38,6 +38,8 @@ class MainActivity : ComponentActivity() {
 
         loadSettings(context = applicationContext)
 
+        refreshLyrics(applicationContext)
+
         enableEdgeToEdge()
         setContent {
             HumMeTheme {
@@ -100,6 +102,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshLyrics(applicationContext)
     }
     private fun checkStoragePermissions(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

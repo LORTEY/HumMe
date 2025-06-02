@@ -1,10 +1,15 @@
 package com.lortey.humme
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.lortey.humme.ui.theme.apikeys
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -37,10 +42,40 @@ public fun InitializeSp(context:Context, apikeys:API):Boolean{
     return initialized
 }
 
-public fun getPlaylist(context:Context,playlistUri:String):PlaylistPython{
+public fun getPlaylist(context:Context,playlistUri:String):PlaylistPython?{
     val module = getModuleSpotify(context)
     val playlistStr = module.callAttr("get_playlist_tracks",playlistUri).toString()
-    return jsonFormat.decodeFromString<PlaylistPython>(playlistStr)
+
+    when(playlistStr){
+        "Wrong Spotify Link" -> {
+            Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context,"Wrong Spotify Link or private playlist.", Toast.LENGTH_SHORT).show()
+            }
+            return null
+        }
+        "Spotify client not initialized" -> {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(context, "Wrong Spotify API keys.", Toast.LENGTH_SHORT).show()
+            }
+            return null}
+        "Connection Error" -> {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(
+                    context,
+                    "Could not connect to spotify. Slow or spotty internet or lack of connection.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            return null}
+    }
+    try {
+        return jsonFormat.decodeFromString<PlaylistPython>(playlistStr)
+    }catch(e:Exception){
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, playlistStr, Toast.LENGTH_SHORT).show()
+        }
+        return null
+    }
 }
 public fun initializeGenius(context:Context, apikeys:API):Boolean{
     val module = getModuleGenius(context)

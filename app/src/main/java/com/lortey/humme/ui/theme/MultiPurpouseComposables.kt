@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.lortey.humme.R
@@ -112,15 +116,14 @@ fun PopUp(title:String = "", text:String = "", closeAction:()->Unit, visibility:
                                 .padding(4.dp)
                                 .fillMaxWidth()
                         ) {
-                            Text(
-                                getTranslation("Close"),
-                                modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .padding(5.dp)
-                                    .clickable(onClick = { closeAction() }),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Button(onClick = {closeAction()}){
+                                Text(
+                                    getTranslation("Close"),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+
                             if(secondButton != null){
                                 secondButton()
                             }
@@ -131,6 +134,25 @@ fun PopUp(title:String = "", text:String = "", closeAction:()->Unit, visibility:
         }
 }
 
+@Composable
+fun LoadingPopup(
+    isShowing: Boolean,
+    onDismissRequest: () -> Unit = {}
+) {
+    if (isShowing) {
+        Dialog(
+            onDismissRequest = onDismissRequest,
+            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(100.dp)
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+}
 /*not implemented
 class IndexTracker<T>(var value: T)
 var UniversalSelected: MutableList<Boolean> = mutableListOf()

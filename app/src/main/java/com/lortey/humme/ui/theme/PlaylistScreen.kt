@@ -155,14 +155,16 @@ fun PlaylistScreen(context: Context, navController: NavHostController) {
                     ) {
                         Button(onClick = {
                             val newPlaylistContent = playlistFromLink(context, playlistUrl)
-                            if(playlists == null){
-                                playlists = mutableListOf(newPlaylistContent)
-                            }else{
-                                playlists!!.add(newPlaylistContent)
+                            if(newPlaylistContent!=null) {
+                                if (playlists == null) {
+                                    playlists = mutableListOf(newPlaylistContent)
+                                } else {
+                                    playlists!!.add(newPlaylistContent)
+                                }
+                                writePlaylists(context)
+                                loadPlaylists(context)
+                                showPopup = false
                             }
-                            writePlaylists(context)
-                            loadPlaylists(context)
-                            showPopup = false
                         }
                         ) {
                             Text(

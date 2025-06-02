@@ -4,6 +4,8 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,9 +59,15 @@ import com.lortey.humme.addRequest
 import com.lortey.humme.getLyrics
 import com.lortey.humme.loadProfiles
 import com.lortey.humme.playlistFromLink
+import com.lortey.humme.playlistRefresh
+import com.lortey.humme.profileDirectory
 import com.lortey.humme.refreshLyrics
 import com.lortey.humme.saveLyrics
 import com.lortey.humme.saveProfile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Base64
 import java.security.SecureRandom
 
@@ -120,11 +131,11 @@ fun ProfileScreen(context: Context, navController: NavController){
 }
 
 @Composable
-fun EditProfile(context: Context, navController: NavController){
+fun EditProfile(context: Context, navController: NavController) {
     var name by remember { mutableStateOf(editedProfile!!.name) }
     LaunchedEffect(Unit) {
-        if(editedProfile == null){
-            editedProfile = Profile(generateRandomBase48(),"", true, mutableListOf())
+        if (editedProfile == null) {
+            editedProfile = Profile(generateRandomBase48(), "", true, mutableListOf())
         }
     }
     var playlists by remember { mutableStateOf(editedProfile!!.playlists) }
@@ -135,67 +146,87 @@ fun EditProfile(context: Context, navController: NavController){
 
     var showProgress by remember { mutableStateOf(false) }
 
-    var currentProgressSong by remember{ mutableStateOf("")}
-    var currentProgressNumber by remember{ mutableStateOf(0)}
-    Column(modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
-        .padding(WindowInsets.systemBars.asPaddingValues())) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = { editedProfile!!.name = it;
-                            name = it},
-            label = {
-                Text(
-                    "Profile Name",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    var showConfirmationPopup by remember { mutableStateOf(false) }
 
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    LoadingPopup(showProgress, { showProgress = false })
 
-                cursorColor = MaterialTheme.colorScheme.primary,
-
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-            ),
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth()
-        )
-        LazyColumn {
-            items(playlists) { playlist ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 10.dp)
-                        .background(MaterialTheme.colorScheme.inverseOnSurface)
-                ) {
-                    UniversalTextEntry(
-                        playlist.name,
-                        playlist.tracks.map { it.name }.joinToString (", "),
-                        Modifier.fillMaxWidth().weight(1.5f),/*justforquickeditting*/
-                        { clickedPlaylist ->
-                            editedPlaylist = clickedPlaylist as Playlist
-                            navController.navigate("edit_playlist")
-                        },
-                        playlist
+    LazyColumn(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
+            .padding(WindowInsets.systemBars.asPaddingValues())
+    ) {
+        item {
+            OutlinedTextField(
+                value = name,
+                onValueChange = {
+                    editedProfile!!.name = it;
+                    name = it
+                },
+                label = {
+                    Text(
+                        "Profile Name",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
                     )
-                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                    cursorColor = MaterialTheme.colorScheme.primary,
+
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                ),
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+            )
+        }
+        items(playlists) { playlist ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
+                    .background(MaterialTheme.colorScheme.inverseOnSurface)
+            ) {
+                UniversalTextEntry(
+                    playlist.name,
+                    playlist.tracks.map { it.name }.joinToString(", "),
+                    Modifier.fillMaxWidth().weight(1.5f),/*justforquickeditting*/
+                    { clickedPlaylist ->
+                        editedPlaylist = clickedPlaylist as Playlist
+                        navController.navigate("edit_playlist")
+                    },
+                    playlist
+                )
+
+                val scope = CoroutineScope(Dispatchers.Default)
+
+                Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+                if (playlist.link?.isNotEmpty() == true) {
                     IconButton(
                         onClick = {
-                            editedProfile =
-                                editedProfile!!.copy(playlists = editedProfile!!.playlists.filterNot { it == playlist }
-                                    .toMutableList())
+                            showProgress = true
+                            showPopUp = false
+                            scope.launch {
+                                val newContent = playlistRefresh(context, playlist)
+                                if (newContent != null) {
+                                    editedProfile =
+                                        editedProfile!!.copy(playlists = editedProfile!!.playlists.map { if (it.id == playlist.id) newContent else it }
+                                            .toMutableList())
 
-                            playlists = mutableListOf()
-                            playlists.addAll(editedProfile!!.playlists)
+                                    playlists = mutableListOf()
+                                    playlists.addAll(editedProfile!!.playlists)
+                                }
+                                showProgress = false
+                            }
+
                         },
                         modifier = Modifier.background(
                             shape = RoundedCornerShape(128.dp),
@@ -203,74 +234,142 @@ fun EditProfile(context: Context, navController: NavController){
                         ).padding(horizontal = 10.dp).size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.delete),
-                            contentDescription = "remove",
+                            painter = painterResource(id = R.drawable.wrong),
+                            contentDescription = "refresh",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .fillMaxSize()
                         )
                     }
                 }
+                IconButton(
+                    onClick = {
+                        editedProfile =
+                            editedProfile!!.copy(playlists = editedProfile!!.playlists.filterNot { it == playlist }
+                                .toMutableList())
 
-            }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .align(Alignment.CenterHorizontally),
-                    horizontalArrangement = Arrangement.Center
+                        playlists = mutableListOf()
+                        playlists.addAll(editedProfile!!.playlists)
+                    },
+                    modifier = Modifier.background(
+                        shape = RoundedCornerShape(128.dp),
+                        color = MaterialTheme.colorScheme.inverseOnSurface
+                    ).padding(horizontal = 10.dp).size(32.dp)
                 ) {
-                    Button(onClick = {
-                        editedPlaylist = Playlist(generateRandomBase48(),null, "", mutableListOf()); navController.navigate("edit_playlist")
-                    }) {
-                        Text(
-                            text = "Add Empty Playlist",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.delete),
+                        contentDescription = "remove",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    )
                 }
             }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .align(Alignment.CenterHorizontally),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(onClick = {
-                        showPopUp = true
-                    }) {
-                        Text(
-                            text = "Add Playlist From Spotify",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+
+        }
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(onClick = {
+                    editedPlaylist = Playlist(
+                        generateRandomBase48(),
+                        null,
+                        "",
+                        mutableListOf()
+                    ); navController.navigate("edit_playlist")
+                }) {
+                    Text(
+                        text = "Add Empty Playlist",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(onClick = {
+                    showPopUp = true
+                }) {
+                    Text(
+                        text = "Add Playlist From Spotify",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+
+       item {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
-                .align(Alignment.CenterHorizontally),
+                .padding(12.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             Button(onClick = {
-                saveProfile(editedProfile!!, context)
-                refreshLyrics(context)
-                navController.popBackStack()
+                showConfirmationPopup = true
             }) {
                 Text(
-                    text = "Save",
+                    text = "Delete",
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
+    }
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(onClick = {
+                    saveProfile(editedProfile!!, context)
+                    refreshLyrics(context)
+                    navController.popBackStack()
+                }) {
+                    Text(
+                        text = "Save",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
+
+    if(showConfirmationPopup) {
+        PopUp(
+            "Delete This Profile",
+            "Are you sure you want to delete this profile",
+            { showConfirmationPopup = false },
+            showConfirmationPopup,
+            {
+                Button(onClick = {
+                    showConfirmationPopup = false
+                    val dir = File(context.getExternalFilesDir(null), profileDirectory)
+                    val file = File(dir, editedProfile!!.id);
+                    if (file.exists()) file.delete();
+                    navController.popBackStack()
+                }) {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            })
     }
     if(showPopUp) {
         Box(modifier = Modifier.fillMaxWidth().background(color=Color.Black.copy(alpha = 0.5f))){        }
@@ -313,6 +412,7 @@ fun EditProfile(context: Context, navController: NavController){
                         .padding(10.dp)
                         .fillMaxWidth()
                 )
+                val scope = CoroutineScope(Dispatchers.Default)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -321,16 +421,37 @@ fun EditProfile(context: Context, navController: NavController){
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Button(onClick = {
-                        showPopUp = false
-                        val playlistFromLink = playlistFromLink(context, playlistLink)
+                        if(!showProgress) {
+                            showProgress = true
+                            showPopUp = false
+                            scope.launch {
+                                val playlistFromLink = playlistFromLink(context, playlistLink)
+                                if (playlistFromLink != null) {
+                                    editedProfile!!.playlists.add(playlistFromLink)
+                                    playlists = mutableListOf()
+                                    playlists.addAll(editedProfile!!.playlists)
+                                    addRequest(
+                                        context,
+                                        buildList {
+                                            playlistFromLink.tracks.forEach {
+                                                add(
+                                                    LyricsRequest(
+                                                        generateRandomBase48(),
+                                                        it.artist.first(),
+                                                        it.name,
+                                                        editedProfile!!.id,
+                                                        PlaylistId = playlistFromLink.id,
+                                                        it.id
+                                                    )
+                                                )
+                                            }
+                                        })
+                                }
+                                showProgress = false
+                            }
 
-                        editedProfile!!.playlists.add(playlistFromLink)
-                        playlists = mutableListOf()
-                        playlists.addAll(editedProfile!!.playlists)
-                        addRequest(context,
-                            buildList { playlistFromLink.tracks.forEach{ add(LyricsRequest(
-                                generateRandomBase48(), it.artist.first(), it.name, editedProfile!!.id, PlaylistId = playlistFromLink.id, it.id))} })
-                    }) {
+                        }
+                        }) {
                         Text(
                             text = "Add",
                             color = MaterialTheme.colorScheme.onPrimary,
@@ -404,10 +525,10 @@ fun EditPlaylist(context: Context, navController: NavController) {
                         track.name, track.artist.joinToString (", "),
                         Modifier.fillMaxWidth().weight(1.5f),/*justforquickeditting*/
                         { clickedTrack ->
-                            if (editedPlaylist!!.link == null) {
+                            //if (editedPlaylist!!.link == null) {
                                 editedTrack = clickedTrack as Track
                                 showPopUp = true
-                            }
+                            //}
                         },
                         track,
                         enabled
@@ -531,67 +652,73 @@ fun EditPlaylist(context: Context, navController: NavController) {
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background)
                     .padding(WindowInsets.systemBars.asPaddingValues())
+                    .verticalScroll(rememberScrollState())
             ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { editedTrack!!.name = it
-                                    name = it},
-                    label = {
-                        Text(
-                            "Track Name",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                if (editedPlaylist!!.link == null) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = {
+                            editedTrack!!.name = it
+                            name = it
+                        },
+                        label = {
+                            Text(
+                                "Track Name",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
 
-                        cursorColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary,
 
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                    ),
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = artists,
-                    onValueChange = {
-                        if(editedTrack!!.artist.size > 0){
-                            editedTrack!!.artist[0] = it
-                        }else{
-                            editedTrack!!.artist.add(it)
-                        }
-                        artists = it
-                                    },
-                    label = {
-                        Text(
-                            "Artist",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                        ),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = artists,
+                        onValueChange = {
+                            if (editedTrack!!.artist.size > 0) {
+                                editedTrack!!.artist[0] = it
+                            } else {
+                                editedTrack!!.artist.add(it)
+                            }
+                            artists = it
+                        },
+                        label = {
+                            Text(
+                                "Artist",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
 
-                        cursorColor = MaterialTheme.colorScheme.primary,
+                            cursorColor = MaterialTheme.colorScheme.primary,
 
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
-                    ),
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                )
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                        ),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    )
+                }
+
                 OutlinedTextField(
                     value = lyrics ?: "",
                     onValueChange = { lyrics = it},
@@ -656,7 +783,6 @@ fun EditPlaylist(context: Context, navController: NavController) {
             }
         }
     }
-
 }
 @Composable
 fun UniversalTextEntry(textA:String, textB:String, modifier: Modifier, onClickAction:(Any) -> Unit, identity:Any, visible:Boolean = true){

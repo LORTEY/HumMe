@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -45,7 +48,6 @@ import com.lortey.humme.initializeGenius
 import com.lortey.humme.saveAPI
 
 public var apikeys:API? = null
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMenuRender(context: Context, navController: NavHostController){
     var showPopup by remember{ mutableStateOf(false)}
@@ -99,15 +101,21 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                 Text("Settings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
             }
         }
-        Icon(
-            painter = painterResource(id = R.drawable.play),
-            contentDescription = "Play",
-            tint = MaterialTheme.colorScheme.primary,
+        IconButton(
+            onClick = {savedGame = null; navController.navigate("game_screen") },
             modifier = Modifier
-                .clickable {savedGame = null; navController.navigate("game_screen") }
-                .size(128.dp)
-                .align(Alignment.Center)
-        )
+            .size(128.dp)
+            .align(Alignment.Center)) {
+            Icon(
+                painter = painterResource(id = R.drawable.play),
+                contentDescription = "Play",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(128.dp)
+                    .align(Alignment.Center)
+            )
+        }
+
     }
     if(showPopup){
         Popup(
@@ -121,6 +129,7 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background)
                     .padding(WindowInsets.systemBars.asPaddingValues())
+                    .verticalScroll(rememberScrollState())
             ) {
                 OutlinedTextField(
                     value = spotifyClientID,

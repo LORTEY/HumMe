@@ -10,7 +10,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 private val jsonFormat = Json { ignoreUnknownKeys = true; prettyPrint = true } // jsonFormat
-private const val profileDirectory = "Profiles"
+const val profileDirectory = "Profiles"
 
 
 public fun saveProfile(profile:Profile, context: Context){

@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -239,7 +240,7 @@ fun GameScreen(context: Context, navController: NavController) {
                         val previousData = getPreviousSong(previousSongs)
                         if(previousData != null){
                             tracksToPick.add(currentSong)
-                            currentColor = Color.Blue
+                            currentColor = Color.Cyan
                             showFade = true
                             scope.launch {
                                 delay(200)
@@ -309,13 +310,14 @@ fun GameScreen(context: Context, navController: NavController) {
             modifier = Modifier.background(
                 shape = RoundedCornerShape(128.dp),
                 color = MaterialTheme.colorScheme.inverseOnSurface
-            ).padding(10.dp).size(48.dp).align(Alignment.TopStart)
+            ).padding(10.dp).size(60.dp).align(Alignment.TopStart)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.lyrics),
                 contentDescription = "lyrics",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
+                    .padding(5.dp)
                     .fillMaxSize()
             )
         }
@@ -328,13 +330,14 @@ fun GameScreen(context: Context, navController: NavController) {
             modifier = Modifier.background(
                 shape = RoundedCornerShape(128.dp),
                 color = MaterialTheme.colorScheme.inverseOnSurface
-            ).padding(10.dp).size(48.dp).align(Alignment.TopEnd)
+            ).padding(10.dp).size(58.dp).align(Alignment.TopEnd)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.trophy),
                 contentDescription = "end",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
+                    .padding(5.dp)
                     .fillMaxSize()
             )
         }
@@ -355,7 +358,7 @@ fun GameScreen(context: Context, navController: NavController) {
 
         }
 
-        Row( horizontalArrangement = Arrangement.End,modifier = Modifier.align(Alignment.BottomEnd).fillMaxWidth(0.5f)){
+        Row( horizontalArrangement = Arrangement.End,modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp).fillMaxWidth(0.5f)){
             Text(currentSong.artist.joinToString ("\n" ).replace(",","\n"),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
