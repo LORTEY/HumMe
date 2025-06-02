@@ -234,7 +234,7 @@ fun EditProfile(context: Context, navController: NavController) {
                         ).padding(horizontal = 10.dp).size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.wrong),
+                            painter = painterResource(id = R.drawable.refresh),
                             contentDescription = "refresh",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier

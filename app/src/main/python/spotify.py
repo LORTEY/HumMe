@@ -80,6 +80,8 @@ def get_playlist_tracks(playlist_url):
         return "Connection Error"
     except spotipy.exceptions.SpotifyException:
         return "Wrong Spotify Link"
+    except spotipy.exceptions.SpotifyOauthError:
+        return "Spotify client not initialized"
     for item in tracks:
         track = item['track']
         playlistData.tracks.append(Track(track['name'], track['id'] , [artist["name"] for artist in track['artists']]))
@@ -144,5 +146,7 @@ def get_all_artist_tracks(artist_url):
         return "Connection Error"
     except spotipy.exceptions.SpotifyException:
         return "Wrong Spotify Link"
+    except spotipy.exceptions.SpotifyOauthError:
+        return "Spotify client not initialized"
     except Exception as e:
         return f"Error: {str(e)}"
