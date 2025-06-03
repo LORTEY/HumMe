@@ -1,2 +1,2 @@
 # HumMe
-Android app for a hum a song party game utilizing spotify and genius api. I will use python for backend. hope apis are free.
+Android app for guess this song party game. It utilizes spotify api for adding tracks to guess from playlists, albums and artists links. It also downloads song lyrics using genius api, allowing for easier recall of the song.
