@@ -79,13 +79,19 @@ public fun getPlaylist(context:Context,playlistUri:String):PlaylistPython?{
 }
 public fun initializeGenius(context:Context, apikeys:API):Boolean{
     val module = getModuleGenius(context)
-    val initialized = module.callAttr("set_global_genius", apikeys.geniusAccessToken).toBoolean()
+    if (apikeys.geniusAccessToken == null) {
+        return false
+    }
+        val initialized =
+            module.callAttr("set_global_genius", apikeys.geniusAccessToken).toBoolean()
 
     return initialized
 }
 
 public fun getLyrics(context: Context, songName:String, Author:String):String{
-    initializeGenius(context, apikeys!!)
+    if(! initializeGenius(context, apikeys!!)){
+        return  ""
+    }
     val module = getModuleGenius(context)
     val playlistStr = module.callAttr("get_lyrics",Author, songName).toString()
     return playlistStr

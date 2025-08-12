@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MatProg">
+        <attr name="matProg_progressIndeterminate" format="reference" />
+        <attr name="matProg_barColor" format="color" />
+    </declare-styleable>
+</resources>

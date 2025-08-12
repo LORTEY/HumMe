@@ -222,6 +222,8 @@ fun MainMenuRender(context: Context, navController: NavHostController){
                         spotifyClientID = if(spotifyClientID.isEmpty()) null else spotifyClientID,
                         spotifyClientSecret = if(spotifyClientSecret.isEmpty()) null else spotifyClientSecret,
                         geniusAccessToken = if(geniusAccessToken.isEmpty()) null else geniusAccessToken,
+                        apikeys!!.spotifyRefreshToken,
+                        apikeys!!.spotifyRefreshTokenExpiryTime
                     )
                             showPopup= false
                         apikeys?.let{ saveAPI(it, context) }

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.HumMe" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.HumMe" parent="android:Theme.Material.Light.NoActionBar">
+    <item name="matProg_progressIndeterminate">@style/Widget.App.ProgressIndicator</item>
+    <item name="matProg_barColor">@color/black</item>
+</style>
+
+<style name="Widget.App.ProgressIndicator" parent="Widget.Material3.CircularProgressIndicator">
+<item name="indicatorColor">@color/black</item>
+</style>
 </resources>

@@ -15,7 +15,8 @@ public data class API(
     var spotifyClientSecret:String?,
     //var spotifyRedirectURI:String?,
     var geniusAccessToken:String?,
-    //var geniusClientSecret:String?,
+    var spotifyRefreshToken:String?,
+    var spotifyRefreshTokenExpiryTime:Long?,
 )
 
 public fun saveAPI(apiKeys:API, context: Context){
@@ -30,7 +31,7 @@ public fun loadAPI(context: Context):API{
         val content = file.readText()
         return jsonFormat.decodeFromString<API>(content)
     }catch(e:Exception){
-        return API(null,null,null)
+        return API(null,null,null,null,null)
     }
 
 }

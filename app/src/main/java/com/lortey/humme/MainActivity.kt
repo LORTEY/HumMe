@@ -1,6 +1,9 @@
 package com.lortey.humme
 
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -26,6 +29,7 @@ import com.lortey.humme.ui.theme.PlaylistScreen
 import com.lortey.humme.ui.theme.ProfileScreen
 import com.lortey.humme.ui.theme.SettingsMenu
 import com.lortey.humme.ui.theme.apikeys
+import com.lortey.humme.ui.theme.generateRandomBase48
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,10 +39,16 @@ class MainActivity : ComponentActivity() {
 
         InitializeSp(applicationContext, apikeys!!)
         initializeGenius(applicationContext, apikeys!!)
-
+        //startSpotifyLogin(apikeys!!, applicationContext)
         loadSettings(context = applicationContext)
 
         refreshLyrics(applicationContext)
+        val codeVerifier = generateRandomBase48()
+        getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE).edit()
+            .putString("code_verifier", codeVerifier)
+            .apply()
+
+        startSpotifyLogin(apikeys!!, this,codeVerifier)
 
         enableEdgeToEdge()
         setContent {
